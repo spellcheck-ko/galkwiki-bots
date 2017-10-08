@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
 import sys
+import datetime
+import re
+
 import xlrd
 import hypua2jamo
-import re
 import mwapi
 
-BOT_USERNAME = 'Admin'
-BOT_PASSWORD = 'adminpass'
+BOT_USERNAME = 'Admin@ImportBot'
+BOT_PASSWORD = '1m5h6q6nqgh8ihss420st8lt2hd01l8o'
 
 class records_from_xls:
     def __init__(self, filename):
@@ -77,10 +79,9 @@ def escape_title(s):
     return s
 
 def escape_value(s):
-    s = s.replace('[','&#91;').replace(']','&#93;').replace('|','&#124;')
-    s = s.replace('<', '&lt;').replace('>', '&gt;')
+    s = s.replace('[','❲').replace(']','❳').replace('|','❘')
+    s = s.replace('<', '❬').replace('>', '❭')
     return s
-
 
 def get_record(rawrec):
     rec = []
@@ -91,9 +92,7 @@ def get_record(rawrec):
                 value = value[1:-1]
             rec.append((key,value))
         elif key == '품사':
-            if value == '품사 없음':
-                pass
-            elif '·' in value:
+            if '·' in value:
                 subvalues = value.split('·')
                 for sv in subvalues:
                     sv = {'감':'감탄사',
@@ -185,8 +184,9 @@ def get_record(rawrec):
     return rec
 
 
-def format_record(rec):
+def format_record(rec, datestr):
     lines = ['{{#set:']
+    lines.append('우리말샘:가져온시각=%s' % datestr)
     for k,v in rec:
         value = escape_value(v)
         if k.startswith('규범 정보'):
@@ -206,6 +206,7 @@ def edit_page(api_session, title, text):
 
     text_above = ''
     text_below = ''
+    new_import = False
     if int(rev) >= 0:
         content = resp['query']['pages'][rev]['revisions'][0]['*']
         a = content.find(begin_line)
@@ -216,6 +217,7 @@ def edit_page(api_session, title, text):
         elif a < 0 and b < 0:
             text_above = content + '\n'
             text_below = ''
+            new_import = True
         else:
             sys.stdout.write('Wrong begin/end marks in page \"%s\"\n' % title)
             assert(False)
@@ -228,6 +230,8 @@ def edit_page(api_session, title, text):
         lines.append(text_above)
         if not text_above.endswith('\n'):
             lines.append('\n')
+    if new_import or '갈퀴:라이선스' not in text_above:
+        lines.append('{{#set:갈퀴:라이선스=CC BY-SA 2.0 KR}}\n')
     lines.append(begin_line)
     if not text.startswith('\n'):
         lines.append('\n')
@@ -257,11 +261,19 @@ def main():
         maxentries = -1
 
     api_sess = mwapi.Session('http://localhost:8080', user_agent=BOT_USERNAME)
-    result = api_sess.login(username=BOT_USERNAME, password=BOT_PASSWORD)
+
+    token_doc = api_sess.post(action='query', meta='tokens', type='login')
+    login_token = token_doc['query']['tokens']['logintoken']
+    resp = api_sess.post(action="login",
+                         lgname=BOT_USERNAME, lgpassword=BOT_PASSWORD,
+                         lgtoken=login_token)
+    assert(resp['login']['result'] == 'Success')
 
     records = records_from_xls(filename)
     if maxentries < 0:
         maxentries = len(records)
+
+    datestr = datetime.datetime.utcnow().isoformat() + 'Z'
 
     for rawrec in records:
         if maxentries > 0:
@@ -276,7 +288,7 @@ def main():
         title = '%s (%s)' % (word.replace('-','').replace('^',''), serial)
 
         title = escape_title(title)
-        text = format_record(rec)
+        text = format_record(rec, datestr)
 
         edit_page(api_sess, title, text)
 
