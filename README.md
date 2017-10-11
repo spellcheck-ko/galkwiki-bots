@@ -2,11 +2,24 @@
 
 갈퀴 사이트의 관리 작업을 하는 봇입니다.
 
+## 봇 테스트해 보기
+
+* docker-compose를 이용해서 galkwiki 로컬 인스턴스를 생성합니다. https://github.com/spellcheck-ko/galkwiki 참고.
+* 로그인한 다음 "특수:BotPasswords" 페이지에서 봇을 하나 생성합니다.
+* "대용량 편집", "문서 만들기, 편집 및 이동" 권한을 부여합니다.
+
+* 갈퀴 메인 사이트의 "특수:내보내기" 페이지에서 편집할 때 주목할 페이지를 xml 형식으로 다운로드합니다.
+* 로컬 인스턴스의 "특수:가져오기" 페이지에서 다운로드한 xml을 업로드합니다.
+* "docker exec -it galkwiki_wiki_1 bash" 명령으로 컨테이너로 들어갑니다.
+  * 컨테이너에서 "cd /var/www/html/w" 명령으로 이동
+  * "php maintenance/rebuildall.php" 실행
+
 ## importer
 
-데이터 import 기능
-
-- FIXME
+* 국립국어원 우리말샘 (약 100만, 속담/관용구/방언/옛글/북한어/전문용어 제외하면 약 20만)
+* 국립국어원 한국어 기초 사전 (약 5만)
+* 국립국어원 한국어 학습용 어휘 목록
+* 옛 갈퀴
 
 ## editor
 
