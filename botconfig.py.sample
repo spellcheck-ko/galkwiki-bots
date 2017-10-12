@@ -1,0 +1,9 @@
+url ='http://localhost:8080'
+username = 'Admin'
+password = 'adminpass'
+is_bot = False
+batch_limit = 10000
+#username = 'Admin@BotName'
+#password = '0123456789abcdefghijklmnopqrstuv'
+#is_bot = True
+#batch_limit = 10000

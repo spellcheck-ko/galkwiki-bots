@@ -6,7 +6,7 @@ import re
 
 import xlrd
 import hypua2jamo
-import mwapi
+import bot
 
 BOT_USERNAME = 'Admin@ImportBot'
 BOT_PASSWORD = '1m5h6q6nqgh8ihss420st8lt2hd01l8o'
@@ -185,8 +185,9 @@ def get_record(rawrec):
 
 
 def format_record(rec, datestr):
-    lines = ['{{#set:']
-    lines.append('우리말샘:가져온시각=%s' % datestr)
+    lines = ['{{#set:갈퀴:원본=우리말샘}}']
+    lines.append('{{#set:')
+    lines.append('우리말샘:가져온 시각=%s' % datestr)
     for k,v in rec:
         value = escape_value(v)
         if k.startswith('규범 정보'):
@@ -244,8 +245,7 @@ def edit_page(api_session, title, text):
     lines.append(text_below)
     new_text = ''.join(lines)
 
-    resp = api_session.get(action='query', meta='tokens')
-    token = resp['query']['tokens']['csrftoken']
+    token = api_session.get_edit_token();
     resp = api_session.post(action='edit', title=title, text=new_text, token=token)
 
 
@@ -260,14 +260,9 @@ def main():
     else:
         maxentries = -1
 
-    api_sess = mwapi.Session('http://localhost:8080', user_agent=BOT_USERNAME)
+    api_sess = bot.BotSession()
 
-    token_doc = api_sess.post(action='query', meta='tokens', type='login')
-    login_token = token_doc['query']['tokens']['logintoken']
-    resp = api_sess.post(action="login",
-                         lgname=BOT_USERNAME, lgpassword=BOT_PASSWORD,
-                         lgtoken=login_token)
-    assert(resp['login']['result'] == 'Success')
+    api_sess.login();
 
     records = records_from_xls(filename)
     if maxentries < 0:

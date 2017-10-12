@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
 
-import mwapi
+import bot
 
-BOT_USERNAME = 'Admin@ImportBot'
-BOT_PASSWORD = '1m5h6q6nqgh8ihss420st8lt2hd01l8o'
 BATCH = 10000
 
-sess = mwapi.Session('http://localhost:8080', user_agent='Test Bot')
-
-token_doc = sess.post(action='query', meta='tokens', type='login')
-login_token = token_doc['query']['tokens']['logintoken']
-resp = sess.post(action="login", lgname=BOT_USERNAME, lgpassword=BOT_PASSWORD,
-                 lgtoken=login_token)
-assert(resp['login']['result'] == 'Success')
-#resp = sess.login(username=BOT_USERNAME, password=BOT_PASSWORD)
+sess = bot.BotSession()
+sess.login()
 
 resp = sess.get(action='query', meta='siteinfo', siprop='namespaces')
 
@@ -38,5 +30,5 @@ for ns_id in namespaces:
 
 for begin in range(0, len(titles), BATCH):
     end = begin + BATCH if (begin + BATCH) < len(titles) else len(titles)
-    resp = sess.get(action='query', export=1, titles='|'.join(titles[begin:end]))
+    resp = sess.post(action='query', export=1, titles='|'.join(titles[begin:end]))
     open('export-%08d.xml' % begin, 'w').write(resp['query']['export']['*'])
