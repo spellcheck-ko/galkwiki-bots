@@ -281,7 +281,7 @@ if __name__ == '__main__':
     for filename in filenames:
         records += build_records_from_xml(filename)
 
-    bot = bot.BotSession()
+    bot = bot.Bot()
     bot.login()
 
     for i, record in zip(range(0, len(records)), records):

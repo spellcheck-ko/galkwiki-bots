@@ -2,9 +2,9 @@
 
 import bot
 
-BATCH = 10000
+BATCH = 500
 
-sess = bot.BotSession()
+sess = bot.Bot()
 sess.login()
 
 resp = sess.get(action='query', meta='siteinfo', siprop='namespaces')

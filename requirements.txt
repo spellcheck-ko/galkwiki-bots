@@ -1,4 +1,3 @@
-mwapi>=0.5.1
 xlrd>=1.1.0
 hypua2jamo>=0.3
 tzlocal

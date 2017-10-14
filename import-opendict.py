@@ -260,7 +260,7 @@ def main():
     else:
         maxentries = -1
 
-    api_sess = bot.BotSession()
+    api_sess = bot.Bot()
 
     api_sess.login();
 
