@@ -1,3 +1,4 @@
 xlrd>=1.1.0
 hypua2jamo>=0.3
 tzlocal
+requests
