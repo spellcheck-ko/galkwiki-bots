@@ -76,7 +76,7 @@ def detect_irregular(word, inflections):
             result = '규칙'
         elif unicodedata.normalize('NFC', nfd[:-1] + V_A) in inflections:
             result = '규칙'
-        elif is_jongseong(nfd[:-3]):
+        elif is_jongseong(nfd[-3]):
             # '-ㄹ르다'처럼 '르' 앞에 종성이 있으면 르불규칙이 될 수 없고
             # '-ㄹ르러' 처럼 되기도 어려워 보이므로 규칙활용 '-ㄹ러'일 것이다
             result = '규칙'
@@ -151,7 +151,14 @@ if __name__ == '__main__':
     for p in pages:
         resp = b.get(action='browsebysubject', subject=p)
         data = resp['query']['data']
+
+        # 이미 설정되어 있는지 확인
+        info = [True for d in data if d['property'] == '갈퀴:불규칙활용']
+        if info:
+            continue
+
         word = [d['dataitem'][0]['item'] for d in data if d['property'] == '한국어기초사전:표제어'][0]
+
         for d in data:
             if d['property'] == '한국어기초사전:활용':
                 inflections = [dd['item'] for dd in d['dataitem']]
@@ -165,3 +172,7 @@ if __name__ == '__main__':
 
         if result.endswith('미확정'):
             print('단어: %s (%s), 활용: %s' % (word, result, ', '.join(inflections)))
+
+        magic = '불규칙활용 자동 검색'
+        content = '{{#set: 갈퀴:불규칙활용=%s}}' % result
+        b.insert_text(p, magic, content)
