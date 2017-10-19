@@ -57,6 +57,54 @@ class Bot:
             self.edit_token = resp['query']['tokens']['csrftoken']
         return self.edit_token
 
+    def get_matched_pages(self, query):
+        '''get iterator of the all pages which are matched to the given query'''
+
+        class AskIter:
+            def __init__(self, bot, query):
+                self.bot = bot
+                self.query = query
+                self.cur_result = []
+                self.cur_i = 0
+                self.next_offset = 0
+
+            def __iter__(self):
+                return self
+
+            def __next__(self):
+                if self.cur_i >= len(self.cur_result):
+                    self.fetch_next()
+
+                r = self.cur_result[self.cur_i]
+                self.cur_i += 1
+                return r
+
+            def fetch_next(self):
+                if self.next_offset < 0:
+                    raise StopIteration()
+
+                q = '%s|limit=500|offset=%d' % (self.query, self.next_offset)
+                resp = self.bot.get(action='ask', query=q)
+                if resp['query']['meta']['offset'] != self.next_offset:
+                    raise StopIteration()
+                elif resp['query']['meta']['count'] == 0:
+                    raise StopIteration()
+                elif resp['query']['results']:
+                    result = [k for k in resp['query']['results'].keys()]
+                    if len(result) == 0:
+                        raise StopIteration()
+                    self.cur_result = result
+                    self.cur_i = 0
+                    if 'query-continue-offset' in resp:
+                        self.next_offset = resp['query-continue-offset']
+                    else:
+                        self.next_offset = -1
+                else:
+                    print(str(resp)[:300] + ' ...... ' + str(resp)[-300:])
+                    raise StopIteration()
+
+        return AskIter(self, query)
+
     def get_page_text(self, title):
         resp = self.get(action='query', prop='revisions', titles=title, rvprop='content')
         rev = list(resp['query']['pages'].keys())[0]
