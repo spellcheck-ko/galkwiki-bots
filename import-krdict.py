@@ -201,7 +201,6 @@ def format_record(rec):
         title = make_title(rec['항목ID'], rec['표제어'])
 
     lines = []
-    lines += ['<!-- BEGIN IMPORT 한국어기초사전 -->']
     lines += ['{{#set:갈퀴:라이선스=CC BY-SA 2.0 KR}}']
     lines += ['{{#set:갈퀴:원본=한국어기초사전}}']
     lines += ['{{#set:']
@@ -253,21 +252,9 @@ def format_record(rec):
             else:
                 raise Exception('No idea how to format ' + k)
         lines += ['}}']
-    lines += ['<!-- END IMPORT 한국어기초사전 -->']
 
     content = '\n'.join(lines)
     return title, content
-
-
-def import_page(bot, title, content):
-    #resp = bot.get(action='query', prop='revisions', titles=title, rvprop='content')
-    #rev = list(resp['query']['pages'].keys())[0]
-
-    content = '{{사전 항목}}\n' + content
-
-    token = bot.get_edit_token();
-    resp = bot.post(action='edit', title=title, text=content, token=token)
-    assert(resp['edit']['result'] == 'Success')
 
 
 if __name__ == '__main__':
@@ -281,11 +268,16 @@ if __name__ == '__main__':
     for filename in filenames:
         records += build_records_from_xml(filename)
 
-    bot = bot.Bot()
-    bot.login()
+    botsession = bot.Bot()
+    botsession.login()
 
     for i, record in zip(range(0, len(records)), records):
         if i % 100 == 0:
             print('Progress: %d/%d' % (i, len(records)))
+
         title, content = format_record(record)
-        import_page(bot, title, content)
+
+        magic = 'IMPORT 한국어기초사전'
+        new_page_prefix = '{{사전 항목}}'
+
+        botsession.insert_text(title, magic, content, new_page_prefix)
