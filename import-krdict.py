@@ -80,15 +80,18 @@ def build_records_from_xml(filename):
                                 else:
                                     subrec['형태'] = ''
                             elif subitem.get('att') == 'pronunciation':
-                                pass # FIXME
+                                pass
+                                # FIXME - 사용하지않는 데이터이므로 일단 무시
                                 # subrec['발음'] = subitem.get('val')
                             elif subitem.get('att') == 'sound':
-                                pass # FIXME
+                                pass
+                                # FIXME - 사용하지않는 데이터이므로 일단 무시
                                 # subrec['URL'] = subitem.get('val')
                             else:
                                 raise Exception('Unknown att ' + subitem.get('att'))
                         elif subitem.tag == 'FormRepresentation':
                             pass
+                            # FIXME - 사용하지않는 데이터이므로 일단 무시
                             # subsubrec = {}
                             # for subsubitem in subitem:
                             #     if subsubitem.get('att') == 'type':
@@ -271,13 +274,13 @@ if __name__ == '__main__':
     botsession = bot.Bot()
     botsession.login()
 
+    magic = 'IMPORT 한국어기초사전'
+    new_page_prefix = '{{사전 항목}}'
+
     for i, record in zip(range(0, len(records)), records):
         if i % 100 == 0:
             print('Progress: %d/%d' % (i, len(records)))
 
         title, content = format_record(record)
-
-        magic = 'IMPORT 한국어기초사전'
-        new_page_prefix = '{{사전 항목}}'
 
         botsession.insert_text(title, magic, content, new_page_prefix)
