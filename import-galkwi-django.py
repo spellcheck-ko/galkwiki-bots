@@ -24,8 +24,8 @@ def format_record(rec, datetimestr):
     title = make_title(rec['id'], rec['word'])
 
     lines = []
-    lines += ['{{#set:갈퀴:라이선스=%s}}' % rec['license']]
-    lines += ['{{#set:갈퀴:원본=갈퀴 Django}}']
+    lines += ['{{#set:사전:원본 라이선스=%s}}' % rec['license']]
+    lines += ['{{#set:사전:원본=갈퀴 Django}}']
     lines += ['{{#set:']
     lines += ['갈퀴 Django:가져온 시각=%s' % datetimestr]
     for k in sorted(rec.keys()):

@@ -185,7 +185,8 @@ def get_record(rawrec):
 
 
 def format_record(rec, datestr):
-    lines = ['{{#set:갈퀴:원본=우리말샘}}']
+    lines = ['{{#set:사전:원본=우리말샘}}']
+    lines.append('{{#set:사전:원본 라이선스=CC BY-SA 2.0 KR}}\n')
     lines.append('{{#set:')
     lines.append('우리말샘:가져온 시각=%s' % datestr)
     for k,v in rec:
@@ -231,8 +232,6 @@ def edit_page(api_session, title, text):
         lines.append(text_above)
         if not text_above.endswith('\n'):
             lines.append('\n')
-    if new_import or '갈퀴:라이선스' not in text_above:
-        lines.append('{{#set:갈퀴:라이선스=CC BY-SA 2.0 KR}}\n')
     lines.append(begin_line)
     if not text.startswith('\n'):
         lines.append('\n')

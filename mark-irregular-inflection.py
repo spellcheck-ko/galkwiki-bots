@@ -27,7 +27,7 @@ def all_pages(bot):
     pages = []
     off = 0
     while True:
-        query = '[[갈퀴:원본::한국어기초사전]] [[한국어기초사전:품사::동사||형용사]]|limit=500|offset=%d' % off
+        query = '[[사전:원본::한국어기초사전]] [[한국어기초사전:품사::동사||형용사]]|limit=500|offset=%d' % off
         resp = b.get(action='ask', query=query)
         if resp['query']['meta']['offset'] != off:
             break

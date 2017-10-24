@@ -204,8 +204,8 @@ def format_record(rec):
         title = make_title(rec['항목ID'], rec['표제어'])
 
     lines = []
-    lines += ['{{#set:갈퀴:라이선스=CC BY-SA 2.0 KR}}']
-    lines += ['{{#set:갈퀴:원본=한국어기초사전}}']
+    lines += ['{{#set:사전:원본 라이선스=CC BY-SA 2.0 KR}}']
+    lines += ['{{#set:사전:원본=한국어기초사전}}']
     lines += ['{{#set:']
     for k in sorted(rec.keys()):
         v = rec[k]
