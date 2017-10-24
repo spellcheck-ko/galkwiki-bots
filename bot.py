@@ -12,13 +12,7 @@ class Bot:
         self.edit_token = None
         self.headers = {'User-Agent': 'Galkwi Bot'}
 
-    def get(self, **params):
-        return self.request('get', params)
-
-    def post(self, files=None, **params):
-        return self.request('post', params, files)
-
-    def request(self, method, params, files=None):
+    def _request(self, method, params, files=None):
         if method == 'post':
             data = params
             data['format'] = 'json'
@@ -35,18 +29,27 @@ class Bot:
         doc = resp.json()
         return doc
 
+    def get(self, **params):
+        return self._request('get', params)
+
+    def post(self, files=None, **params):
+        return self._request('post', params, files)
+
     def login(self):
         token_doc = self.post(action='query', meta='tokens', type='login')
         login_token = token_doc['query']['tokens']['logintoken']
         if botconfig.is_bot:
             resp = self.post(action="login",
-                             lgname=botconfig.username, lgpassword=botconfig.password,
+                             lgname=botconfig.username,
+                             lgpassword=botconfig.password,
                              lgtoken=login_token)
             assert(resp['login']['result'] == 'Success')
         else:
             resp = self.post(action="clientlogin",
-                             username=botconfig.username, password=botconfig.password,
-                             logintoken=login_token, loginreturnurl="http://example.org/")
+                             username=botconfig.username,
+                             password=botconfig.password,
+                             logintoken=login_token,
+                             loginreturnurl="http://example.org/")
             assert(resp['clientlogin']['status'] == 'PASS')
         # clear edit token
         self.edit_token = None
@@ -156,6 +159,24 @@ class Bot:
         token = self.get_edit_token();
         resp = self.post(action='edit', title=title, text=new_text, token=token)
         assert(resp['edit']['result'] == 'Success')
+
+    def get_properties(self, page):
+        result = {}
+        resp = self.get(action='browsebysubject', subject=page)
+        for d in resp['query']['data']:
+            prop = d['property']
+            items = d['dataitem']
+            if prop in result:
+                if type(result[prop]) == list:
+                    result[prop] += [i['item'] for i in items]
+                else:
+                    result[prop] = [result[prop]] + [i['item'] for i in items]
+            else:
+                if len(items) == 1:
+                    result[prop] = items[0]['item']
+                else:
+                    result[prop] = [i['item'] for i in items]
+        return result
 
 
 if __name__ == '__main__':
