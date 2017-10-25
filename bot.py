@@ -164,18 +164,18 @@ class Bot:
         result = {}
         resp = self.get(action='browsebysubject', subject=page)
         for d in resp['query']['data']:
-            prop = d['property']
+            prop = d['property'].replace('_', ' ')
             items = d['dataitem']
             if prop in result:
                 if type(result[prop]) == list:
-                    result[prop] += [i['item'] for i in items]
+                    result[prop] += [i['item'].replace('_', ' ') for i in items]
                 else:
-                    result[prop] = [result[prop]] + [i['item'] for i in items]
+                    result[prop] = [result[prop]] + [i['item'].replace('_', ' ') for i in items]
             else:
                 if len(items) == 1:
-                    result[prop] = items[0]['item']
+                    result[prop] = items[0]['item'].replace('_', ' ')
                 else:
-                    result[prop] = [i['item'] for i in items]
+                    result[prop] = [i['item'].replace('_', ' ') for i in items]
         return result
 
 
