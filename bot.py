@@ -141,9 +141,10 @@ class Bot:
         lines = []
         if text_above:
             lines.append(text_above)
-        lines.append(begin_line)
-        lines.append(bit)
-        lines.append(end_line)
+        if bit:
+            lines.append(begin_line)
+            lines.append(bit)
+            lines.append(end_line)
         if text_below:
             lines.append(text_below)
 
@@ -166,17 +167,34 @@ class Bot:
         for d in resp['query']['data']:
             prop = d['property'].replace('_', ' ')
             items = d['dataitem']
-            if prop in result:
-                if type(result[prop]) == list:
-                    result[prop] += [i['item'].replace('_', ' ') for i in items]
-                else:
-                    result[prop] = [result[prop]] + [i['item'].replace('_', ' ') for i in items]
-            else:
-                if len(items) == 1:
-                    result[prop] = items[0]['item'].replace('_', ' ')
-                else:
-                    result[prop] = [i['item'].replace('_', ' ') for i in items]
+            if prop not in result:
+                result[prop] = []
+            result[prop] += [i['item'].replace('_', ' ') for i in items]
         return result
+
+    def get_properties_and_subobjects(self, page):
+        props = {}
+        resp = self.get(action='browsebysubject', subject=page)
+        for d in resp['query']['data']:
+            prop = d['property'].replace('_', ' ')
+            items = d['dataitem']
+            if prop not in props:
+                props[prop] = []
+            props[prop] += [i['item'].replace('_', ' ') for i in items]
+
+        sobjs = {}
+        for s in resp['query']['sobj']:
+            sobjname = s['subject']
+            sobjprops = {}
+            for d in s['data']:
+                prop = d['property'].replace('_', ' ')
+                items = d['dataitem']
+                if prop not in sobjprops:
+                    sobjprops[prop] = []
+                sobjprops[prop] += [i['item'].replace('_', ' ') for i in items]
+            sobjs[sobjname] = sobjprops
+
+        return props, sobjs
 
 
 if __name__ == '__main__':
