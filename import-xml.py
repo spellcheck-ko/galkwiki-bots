@@ -3,6 +3,7 @@
 import sys
 import bot
 import botconfig
+import time
 
 if botconfig.is_bot:
     print('Bot can\'t import; edit your botconfig.py')
@@ -18,6 +19,13 @@ token = sess.get_edit_token()
 filenames = sys.argv[1:]
 
 for filename in filenames:
+    print('%s...' % filename)
     files = {'xml': (filename, open(filename).read())}
-    resp = sess.post(files, action='import', token=token)
-    print('%s: %d pages imported' % (filename, len(resp['import'])))
+    while True:
+        try:
+            resp = sess.post(files, action='import', token=token)
+        except:
+            print('waiting...')
+            time.sleep(5)
+            continue
+        break
