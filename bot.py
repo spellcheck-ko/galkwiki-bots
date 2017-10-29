@@ -67,7 +67,8 @@ class Bot:
             def __init__(self, bot, query):
                 self.bot = bot
                 self.query = query
-                self.cur_result = []
+                self.cur_keys = []
+                self.cur_results = {}
                 self.cur_i = 0
                 self.next_offset = 0
 
@@ -75,10 +76,10 @@ class Bot:
                 return self
 
             def __next__(self):
-                if self.cur_i >= len(self.cur_result):
+                if self.cur_i >= len(self.cur_keys):
                     self.fetch_next()
 
-                r = self.cur_result[self.cur_i]
+                r = self.cur_keys[self.cur_i]
                 self.cur_i += 1
                 return r
 
@@ -93,10 +94,11 @@ class Bot:
                 elif resp['query']['meta']['count'] == 0:
                     raise StopIteration()
                 elif resp['query']['results']:
-                    result = [k for k in resp['query']['results'].keys()]
-                    if len(result) == 0:
+                    results = resp['query']['results']
+                    if not results:
                         raise StopIteration()
-                    self.cur_result = result
+                    self.cur_results = results
+                    self.cur_keys = [k for k in results.keys()]
                     self.cur_i = 0
                     if 'query-continue-offset' in resp:
                         self.next_offset = resp['query-continue-offset']
@@ -105,6 +107,9 @@ class Bot:
                 else:
                     print(str(resp)[:300] + ' ...... ' + str(resp)[-300:])
                     raise StopIteration()
+
+            def get_printouts(self, k):
+                return self.cur_results[k]['printouts']
 
         return AskIter(self, query)
 
