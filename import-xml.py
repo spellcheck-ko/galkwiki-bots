@@ -21,11 +21,6 @@ filenames = sys.argv[1:]
 for filename in filenames:
     print('%s...' % filename)
     files = {'xml': (filename, open(filename).read())}
-    while True:
-        try:
-            resp = sess.post(files, action='import', token=token)
-        except:
-            print('waiting...')
-            time.sleep(5)
-            continue
-        break
+
+    resp = sess.post(files, action='import', token=token)
+    print('Imported %d (%s ...)' % (len(resp['import']), resp['import'][0]['title']))
