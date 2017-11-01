@@ -188,16 +188,17 @@ class Bot:
             props[prop] += [i['item'].replace('_', ' ') for i in items]
 
         sobjs = {}
-        for s in resp['query']['sobj']:
-            sobjname = s['subject']
-            sobjprops = {}
-            for d in s['data']:
-                prop = d['property'].replace('_', ' ')
-                items = d['dataitem']
-                if prop not in sobjprops:
-                    sobjprops[prop] = []
-                sobjprops[prop] += [i['item'].replace('_', ' ') for i in items]
-            sobjs[sobjname] = sobjprops
+        if 'sobj' in resp['query']:
+            for s in resp['query']['sobj']:
+                sobjname = s['subject']
+                sobjprops = {}
+                for d in s['data']:
+                    prop = d['property'].replace('_', ' ')
+                    items = d['dataitem']
+                    if prop not in sobjprops:
+                        sobjprops[prop] = []
+                    sobjprops[prop] += [i['item'].replace('_', ' ') for i in items]
+                sobjs[sobjname] = sobjprops
 
         return props, sobjs
 

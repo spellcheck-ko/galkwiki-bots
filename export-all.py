@@ -15,8 +15,8 @@ titles = []
 for ns_id in namespaces:
     if int(ns_id) < 0:
         continue
-    if int(ns_id) == 0:
-        continue
+    #if int(ns_id) == 0:
+    #    continue
     try:
         resp = sess.get(action='query', list='allpages', apnamespace=ns_id, aplimit=10)
         titles += [k['title'] for k in resp['query']['allpages']]
