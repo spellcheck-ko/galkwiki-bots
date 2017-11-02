@@ -159,9 +159,13 @@ def build_records_from_xml(filename):
                                 example = subsubitem.get('val')
                             else:
                                 raise Exception('Unknown att ' + subitem.get('att'))
-                        if '용례:' + subtype not in sense:
-                            sense['용례:' + subtype] = []
-                        sense['용례:' + subtype].append(example)
+                        if subtype == '1':
+                            tt = '용례'
+                        else:
+                            tt = '용례:' + subtype
+                        if tt not in sense:
+                            sense[tt] = []
+                        sense[tt].append(example)
                     elif subitem.tag == 'Multimedia':
                         subtype = ''
                         subsense = {}
