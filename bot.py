@@ -141,6 +141,7 @@ class Bot:
             text_below = ''
 
         text_above = text_above.strip('\n')
+        text_below = text_below.strip('\n')
         bit = bit.strip('\n')
 
         lines = []
