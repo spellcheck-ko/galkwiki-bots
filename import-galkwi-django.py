@@ -37,7 +37,7 @@ def format_record(rec, datetimestr):
                   'orig': '본딧말',
                   'pos': '품사',
                   'props': '속성',
-                  'stem': '어원',
+                  'stem': '어근',
                   'word': '표제어'}
         kname = knames[k]
         v = rec[k]
@@ -87,6 +87,7 @@ if __name__ == '__main__':
     tz = tzlocal.get_localzone()
     dt = tz.localize(datetime.datetime.now())
     datetimestr = dt.isoformat()
+    datetimestr = '2017-10-20T21:46:15.309170+09:00'
 
     for i, record in zip(range(0, len(records)), records):
         if i % 100 == 0:
