@@ -2,7 +2,7 @@
 
 import bot
 
-BATCH = 100
+BATCH = 50
 
 sess = bot.Bot()
 sess.login()
