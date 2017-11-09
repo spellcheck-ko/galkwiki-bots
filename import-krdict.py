@@ -4,21 +4,18 @@ import bot
 import datetime
 import tzlocal
 
+PERMLINK_FMT = 'https://krdict.korean.go.kr/dicSearch/SearchView?ParaWordNo=%s'
+
 def build_records_from_xml(filename):
     records = []
 
     xml = ET.parse(filename)
     root = xml.getroot()
 
-    tz = tzlocal.get_localzone()
-    dt = tz.localize(datetime.datetime.now())
-    datetimestr = dt.isoformat()
-
-    entries = root.find('Lexicon').findall('LexicalEntry')
+    entries = root.findall('Lexicon/LexicalEntry')
     for entry in entries:
         rec = {}
         rec['항목ID'] = entry.get('val')
-        rec['가져온 시각'] = datetimestr
         for item in entry:
             if item.tag == 'feat':
                 if item.get('att') == 'homonym_number':
@@ -67,8 +64,10 @@ def build_records_from_xml(filename):
                             raise Exception('Unknown att ' + subitem.get('att'))
                     rec['발음'].append(subrec)
                 elif type == '활용':
+                    # '형태;발음;URL', 별개의 발음은 별개 활용에 하나 추가
                     if '활용' not in rec:
                         rec['활용'] = []
+
                     subrec = {}
                     for subitem in item:
                         if subitem.tag == 'feat':
@@ -80,37 +79,40 @@ def build_records_from_xml(filename):
                                 else:
                                     subrec['형태'] = ''
                             elif subitem.get('att') == 'pronunciation':
-                                pass
-                                # FIXME - 사용하지않는 데이터이므로 일단 무시
-                                # subrec['발음'] = subitem.get('val')
+                                if '발음' in subrec:
+                                    rec['활용'].append(subrec)
+                                    word = subrec['형태']
+                                    subrec = { '형태': word }
+                                subrec['발음'] = subitem.get('val')
                             elif subitem.get('att') == 'sound':
-                                pass
-                                # FIXME - 사용하지않는 데이터이므로 일단 무시
-                                # subrec['URL'] = subitem.get('val')
+                                subrec['발음 URL'] = subitem.get('val')
                             else:
                                 raise Exception('Unknown att ' + subitem.get('att'))
                         elif subitem.tag == 'FormRepresentation':
-                            pass
-                            # FIXME - 사용하지않는 데이터이므로 일단 무시
-                            # subsubrec = {}
-                            # for subsubitem in subitem:
-                            #     if subsubitem.get('att') == 'type':
-                            #         frtype = subsubitem.get('val')
-                            #     elif subsubitem.get('att') == 'writtenForm':
-                            #         if subsubitem.get('val'):
-                            #             subsubrec['형태'] = subsubitem.get('val')
-                            #         else:
-                            #             subsubrec['형태'] = ''
-                            #     elif subsubitem.get('att') == 'pronunciation':
-                            #         subsubrec['발음'] = subsubitem.get('val')
-                            #     elif subsubitem.get('att') == 'sound':
-                            #         subsubrec['URL'] = subsubitem.get('val')
-                            #     else:
-                            #         raise Exception('Unknown att ' + subitem.get('att'))
+                            rec['활용'].append(subrec)
+                            word = subrec['형태']
+                            subrec = {}
+                            for subsubitem in subitem:
+                                if subsubitem.get('att') == 'type':
+                                    frtype = subsubitem.get('val')
+                                elif subsubitem.get('att') == 'writtenForm':
+                                    if subsubitem.get('val'):
+                                        subrec['형태'] = subsubitem.get('val')
+                                    else:
+                                        subrec['형태'] = ''
+                                elif subsubitem.get('att') == 'pronunciation':
+                                    subrec['발음'] = subsubitem.get('val')
+                                elif subsubitem.get('att') == 'sound':
+                                    subrec['발음 URL'] = subsubitem.get('val')
+                                else:
+                                    raise Exception('Unknown att ' + subitem.get('att'))
                             # subrec[frtype] = subsubrec
+                            rec['활용'].append(subrec)
+                            subrec = {}
                         else:
                             raise Exception('Unknown tag ' + subitem.tag)
-                    rec['활용'].append(subrec)
+                    if subrec:
+                        rec['활용'].append(subrec)
                 else:
                     raise Exception('Unknown WordForm type ' + type)
             elif item.tag == 'Sense':
@@ -198,7 +200,7 @@ def make_title(entryid, written, homonym='0'):
     title = '%s (한국어기초사전 %s)' % (label, entryid)
     return title
 
-def format_record(rec):
+def format_record(rec, datetimestr):
     assert('표제어' in rec)
     assert('항목ID' in rec)
 
@@ -208,6 +210,10 @@ def format_record(rec):
         title = make_title(rec['항목ID'], rec['표제어'])
 
     lines = []
+
+    lines += ['{{#set:한국어기초사전:가져온 시각=%s}}' % datetimestr]
+    lines += ['{{#set:한국어기초사전:URL=%s}}' % (PERMLINK_FMT % rec['항목ID'])]
+
     lines += ['{{#set:사전:원본 라이선스=CC BY-SA 2.0 KR}}']
     lines += ['{{#set:사전:원본=한국어기초사전}}']
     lines += ['{{#set:']
@@ -220,10 +226,9 @@ def format_record(rec):
                 if k == '활용':
                     if not subv['형태']:
                         continue
-                    subv = subv['형태']
-                    # url = subv['URL'] if 'URL' in subv else ''
-                    # pron = subv['발음'] if '발음' in subv else ''
-                    # subv = subv['형태'] + ';' + pron + ';' + url
+                    pron = subv['발음'] if '발음' in subv else ''
+                    url = subv['발음 URL'] if '발음 URL' in subv else ''
+                    subv = subv['형태'] + ';' + pron + ';' + url
                 elif k == '발음':
                     url = subv['URL'] if 'URL' in subv else ''
                     if not url and not subv['발음']:
@@ -271,6 +276,15 @@ if __name__ == '__main__':
 
     filenames = sys.argv[1:]
 
+    # get creationDate from xml
+    xml = ET.parse(filenames[0])
+    root = xml.getroot()
+    s = root.find('GlobalInformation/feat[@att="creationDate"]').get('val')
+    tz = tzlocal.get_localzone()
+    now = datetime.datetime.strptime(s, '%Y/%m/%d %H:%M:%S')
+    dt = tz.localize(now)
+    datetimestr = dt.isoformat()
+
     records = []
     for filename in filenames:
         records += build_records_from_xml(filename)
@@ -282,9 +296,8 @@ if __name__ == '__main__':
     new_page_prefix = '{{사전 항목}}'
 
     for i, record in zip(range(0, len(records)), records):
-        if i % 100 == 0:
-            print('Progress: %d/%d' % (i, len(records)))
-
-        title, content = format_record(record)
-
+        title, content = format_record(record, datetimestr)
         botsession.insert_text(title, magic, content, new_page_prefix)
+
+        if i % 100 == 0:
+            print('Progress: %d/%d -- %s' % (i, len(records), title))
