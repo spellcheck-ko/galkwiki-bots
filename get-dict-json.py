@@ -17,8 +17,12 @@ def find_dict_and_save(bot, query, filename):
         entry['pos'] = pos
         if props['맞춤법 검사:속성'] or props['맞춤법 검사:불규칙 활용']:
             entry['props'] = []
-            entry['props'] += props['맞춤법 검사:속성']
-            entry['props'] += props['맞춤법 검사:불규칙 활용']
+            if props['맞춤법 검사:속성']:
+                entry['props'] += props['맞춤법 검사:속성']
+            if props['맞춤법 검사:불규칙 활용']:
+                entry['props'] += props['맞춤법 검사:불규칙 활용']
+        if props['맞춤법 검사:발음']:
+            entry['pronounce'] = props['맞춤법 검사:발음'][0]
         entries.append(entry)
         count += 1
         if count % 100 == 0:
@@ -38,7 +42,7 @@ if __name__ == '__main__':
     #bot.login()
 
     query_fmt = '[[분류:맞춤법 검사 사전 항목]] [[사전:원본 라이선스::%s]]'
-    query_fmt += '|?맞춤법 검사:표제어|?맞춤법 검사:품사|?맞춤법 검사:속성|?맞춤법 검사:불규칙 활용'
+    query_fmt += '|?맞춤법 검사:표제어|?맞춤법 검사:품사|?맞춤법 검사:속성|?맞춤법 검사:불규칙 활용|?맞춤법 검사:발음'
     query = query_fmt % 'MPL 1.1/GPL 2.0/LGPL 2.1'
     find_dict_and_save(bot, query, '%s-mplgpllgpl.json' % basename)
     query = query_fmt % 'CC BY-SA 2.0 KR'
