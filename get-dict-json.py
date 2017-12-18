@@ -45,7 +45,5 @@ if __name__ == '__main__':
     query_fmt += '|?맞춤법 검사:표제어|?맞춤법 검사:품사|?맞춤법 검사:속성|?맞춤법 검사:불규칙 활용|?맞춤법 검사:발음'
     query = query_fmt % 'MPL 1.1/GPL 2.0/LGPL 2.1'
     find_dict_and_save(bot, query, '%s-mplgpllgpl.json' % basename)
-    query = query_fmt % 'CC BY-SA 2.0 KR'
+    query = query_fmt % 'CC BY-SA 2.0 KR||CC BY 4.0'
     find_dict_and_save(bot, query, '%s-ccbysa.json' % basename)
-    query = query_fmt % 'CC BY 4.0'
-    find_dict_and_save(bot, query, '%s-ccby.json' % basename)
